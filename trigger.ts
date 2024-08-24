@@ -1,19 +1,31 @@
 import redis_provider from "@providers/redis";
 import { StreamChannelBroker } from "redis-streams-broker";
-interface Payload {
-  // type: string;
-  queue_name: string;
+
+interface Data {
   payload: Record<string, any>;
   type: string;
 }
+
+interface StreamEventPayload {
+  type: string;
+  companyId: string;
+  data: Data;
+  queue_name: string;
+}
+
 const redisClient = redis_provider.createClient();
-const relayEventsBroker: any = new StreamChannelBroker(redisClient, "RelayEvents");
-const payloads: Payload = {
-  // type: "ProcessExecutor",
-  queue_name: "AsynqFunc",
-  payload: { age: "23" },
+const relayEventsBroker: any = new StreamChannelBroker(redisClient, "OND_MEDIA_EVENTS");
+
+const payloads: StreamEventPayload = {
+  queue_name: "VectorStorageSyncQueue",
+  data: {
+    payload: { namespace: "plugin-1721385613-vector-store_db_events" },
+    type: "moveNamespaceHotToColdStorage"
+  },
   type: "asynq_queue",
+  companyId: "user555"
 };
+
 (async () => {
   try {
     const broker = await relayEventsBroker.publish({ payload: JSON.stringify(payloads) });
